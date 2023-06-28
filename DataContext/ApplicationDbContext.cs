@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using Email.Models;
-//using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+
 
 namespace Email.DataContext
 {
@@ -19,6 +20,12 @@ namespace Email.DataContext
 
         public DbSet<MIS_FieldData> MIS_FieldData { get; set; }
         public DbSet<MIS_Users> MIS_Users { get; set; }
-        
+
+        public DbSet<MIS_MISReport> MIS_MISReport { get; set; }
+        public DbSet<MIS_VerticalMaster> MIS_VerticalMaster { get; set; }
+        public DbSet<MIS_ProjectMaster> MIS_ProjectMaster { get; set; }
+
+
+
     }
 }
