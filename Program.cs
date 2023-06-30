@@ -16,17 +16,17 @@ namespace Task
     {
         static void Main(string[] args)
         {
-            //Report_submitted_01();
-            //Report_submitted_02();
-            //Report_reviewed_02();
-            //ReportReviewed_03();
-            //Report_approved_04();
+            Report_submitted_01();
+           Report_submitted_02();
+            ////Report_reviewed_02();
+            ////ReportReviewed_03();
+            ////Report_approved_04();
             //Report_Reminder_05();
             //Report_Reminder_06();
             //Report_Reminder_07();
             //Report_pending_08();
             //Report_Reminder_09();
-            Report_autoapprove_10();
+            //Report_autoapprove_10();
             //Report_approved_11();
             string path = @"C:\Users\krpat\OneDrive\Documents\GitHub\Email\Task.txt";
             using (StreamWriter writer = new StreamWriter(path, true))
@@ -819,7 +819,7 @@ namespace Task
                         mail.CC.Add(new MailAddress("hoteam8460@gmail.com"));
 
 
-                        mail.Subject = "Pending Reports for Review";
+                        mail.Subject = "Approved Report List";
 
                         // Constructing the mail body
                         var mailBody = new StringBuilder();
@@ -858,9 +858,72 @@ namespace Task
             }
         }
 
+        static void Report_approved_12()
+        {
+            using (var result = new ApplicationDbContext())
+            {
+                var reports = result.MIS_MISReport
+                    .Where(r => r.StatusId == 4)
+                    .Join(
+                        result.MIS_VerticalMaster,
+                        report => report.VerticalId,
+                        vertical => vertical.VerticalId,
+                        (report, vertical) => new { Report = report, Vertical = vertical }
+                    )
+                    .Join(
+                        result.MIS_ProjectMaster,
+                        reportVertical => reportVertical.Report.ProjectId,
+                        project => project.ProjectId,
+                        (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
+                    )
+                    .ToList();
+
+                if (reports.Count > 0)
+                {
+                    using (MailMessage mail = new MailMessage())
+                    {
+                        mail.From = new MailAddress("noreplyehstesting78@gmail.com");
+                        mail.To.Add(new MailAddress("hoteam8460@gmail.com"));
 
 
+                        mail.Subject = "Approved Report List";
 
+                        // Constructing the mail body
+                        var mailBody = new StringBuilder();
+                        mailBody.AppendLine($"<h5>Dear Sir/Madam,</h5>");
+                        mailBody.AppendLine("<br/>");
+                        mailBody.AppendLine("<p>Greetings!</p>");
+                        mailBody.AppendLine("<br/>");
+                        mailBody.AppendLine("<p>The following reports are approved:</p>");
+                        mailBody.AppendLine("<ul>");
+
+                        foreach (var reportData in reports)
+                        {
+                            var report = reportData.ReportVertical.Report;
+                            var vertical = reportData.ReportVertical.Vertical;
+                            var project = reportData.Project;
+
+                            mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}'</li>");
+                        }
+
+                        mailBody.AppendLine("</ul>");
+                        mailBody.AppendLine("<br/>");
+                        mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                        mailBody.AppendLine("<br/>");
+
+                        mail.Body = mailBody.ToString();
+                        mail.IsBodyHtml = true;
+
+                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                        {
+                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
+                            smtp.EnableSsl = true;
+                            smtp.Send(mail);
+                        }
+                    }
+                }
+            }
+        }
 
     }
 
