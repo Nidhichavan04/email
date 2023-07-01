@@ -24,10 +24,11 @@ namespace Task
             //Report_Reminder_05();
             //Report_Reminder_06();
             //Report_Failedtosubmit_07();
-            Report_pending_08();
+            //Report_pending_08();
             //Report_Reminder_09();
             //Report_autoapprove_10();
             //Report_approved_11();
+             Report_approved_12();
             string path = @"C:\Users\krpat\OneDrive\Documents\GitHub\Email\Task.txt";
             using (StreamWriter writer = new StreamWriter(path, true))
             {
@@ -644,13 +645,12 @@ namespace Task
         }
 
 
-
         static void Report_pending_08()
         {
             using (var result = new ApplicationDbContext())
             {
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == 1)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -670,8 +670,12 @@ namespace Task
                     using (MailMessage mail = new MailMessage())
                     {
                         mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                        mail.To.Add(new MailAddress("hoteam8460@gmail.com"));
-                        mail.To.Add(new MailAddress("projectmanager8460@gmail.com"));
+
+                        var usersRoleId2or3 = result.MIS_Users.Where(u => u.RoleId == 2 || u.RoleId == 3).ToList();
+                        foreach (var user in usersRoleId2or3)
+                        {
+                            mail.To.Add(new MailAddress(user.Email));
+                        }
 
                         mail.Subject = "Pending Reports for Review";
 
@@ -696,6 +700,7 @@ namespace Task
                         mailBody.AppendLine("</ul>");
                         mailBody.AppendLine("<br/>");
                         mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                        mailBody.AppendLine($"<p>Date: {DateTime.Now.ToString("yyyy-MM-dd")}</p>");
                         mailBody.AppendLine("<br/>");
 
                         mail.Body = mailBody.ToString();
@@ -711,7 +716,6 @@ namespace Task
                 }
             }
         }
-
 
         static void Report_Reminder_09()
         {
@@ -743,8 +747,19 @@ namespace Task
                         using (MailMessage mail = new MailMessage())
                         {
                             mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                            mail.To.Add(new MailAddress("projectmanager8460@gmail.com"));
-                            mail.CC.Add(new MailAddress("hoteam8460@gmail.com"));
+
+                            var usersRoleId2 = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
+                            foreach (var user in usersRoleId2)
+                            {
+                                mail.To.Add(new MailAddress(user.Email));
+                            }
+
+                            var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
+                            foreach (var user in usersRoleId3)
+                            {
+                                mail.CC.Add(new MailAddress(user.Email));
+                            }
+
                             mail.Subject = "Reminder to approve reported MIS";
 
                             // Constructing the mail body
@@ -768,6 +783,7 @@ namespace Task
                             mailBody.AppendLine("</ul>");
                             mailBody.AppendLine("<br/>");
                             mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                            mailBody.AppendLine($"<p>Date: {DateTime.Now.ToString("yyyy-MM-dd")}</p>");
                             mailBody.AppendLine("<br/>");
 
                             mail.Body = mailBody.ToString();
@@ -815,8 +831,19 @@ namespace Task
                         using (MailMessage mail = new MailMessage())
                         {
                             mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                            mail.To.Add(new MailAddress("projectmanager8460@gmail.com"));
-                            mail.CC.Add(new MailAddress("hoteam8460@gmail.com"));
+
+                            var usersRoleId2 = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
+                            foreach (var user in usersRoleId2)
+                            {
+                                mail.To.Add(new MailAddress(user.Email));
+                            }
+
+                            var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
+                            foreach (var user in usersRoleId3)
+                            {
+                                mail.CC.Add(new MailAddress(user.Email));
+                            }
+
                             mail.Subject = "Auto-approval of reported MIS";
 
                             // Constructing the mail body
@@ -843,6 +870,7 @@ namespace Task
                             mailBody.AppendLine("</ul>");
                             mailBody.AppendLine("<br/>");
                             mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                            mailBody.AppendLine($"<p>Date: {DateTime.Now.ToString("yyyy-MM-dd")}</p>");
                             mailBody.AppendLine("<br/>");
 
                             mail.Body = mailBody.ToString();
@@ -862,6 +890,7 @@ namespace Task
                 }
             }
         }
+
 
 
         static void Report_approved_11()
@@ -889,10 +918,18 @@ namespace Task
                     using (MailMessage mail = new MailMessage())
                     {
                         mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                        mail.To.Add(new MailAddress("siteincharge@gmail.com"));
-                        mail.To.Add(new MailAddress("projectmanager8460@gmail.com"));
-                        mail.CC.Add(new MailAddress("hoteam8460@gmail.com"));
 
+                        var usersRoleId1or2 = result.MIS_Users.Where(u => u.RoleId == 1 || u.RoleId ==2 ).ToList();
+                        foreach (var user in usersRoleId1or2)
+                        {
+                            mail.To.Add(new MailAddress(user.Email));
+                        }
+
+                        var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
+                        foreach (var user in usersRoleId3)
+                        {
+                            mail.CC.Add(new MailAddress(user.Email));
+                        }
 
                         mail.Subject = "Approved Report List";
 
@@ -917,6 +954,7 @@ namespace Task
                         mailBody.AppendLine("</ul>");
                         mailBody.AppendLine("<br/>");
                         mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                        mailBody.AppendLine($"<p>Date: {DateTime.Now.ToString("yyyy-MM-dd")}</p>");
                         mailBody.AppendLine("<br/>");
 
                         mail.Body = mailBody.ToString();
@@ -932,6 +970,7 @@ namespace Task
                 }
             }
         }
+
 
         static void Report_approved_12()
         {
@@ -958,8 +997,12 @@ namespace Task
                     using (MailMessage mail = new MailMessage())
                     {
                         mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                        mail.To.Add(new MailAddress("hoteam8460@gmail.com"));
 
+                        var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
+                        foreach (var user in usersRoleId3)
+                        {
+                            mail.To.Add(new MailAddress(user.Email));
+                        }
 
                         mail.Subject = "Approved Report List";
 
@@ -984,6 +1027,7 @@ namespace Task
                         mailBody.AppendLine("</ul>");
                         mailBody.AppendLine("<br/>");
                         mailBody.AppendLine("<p>Thank you for your attention.</p>");
+                        mailBody.AppendLine($"<p>Date: {DateTime.Now.ToString("yyyy-MM-dd")}</p>");
                         mailBody.AppendLine("<br/>");
 
                         mail.Body = mailBody.ToString();
@@ -999,6 +1043,7 @@ namespace Task
                 }
             }
         }
+
 
     }
 
