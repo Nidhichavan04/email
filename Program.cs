@@ -16,19 +16,19 @@ namespace Task
     {
         static void Main(string[] args)
         {
-            //Report_submitted_01();
-            //Report_submitted_02();
-            //Report_reviewed_02();
-            //ReportPending_03();
-            //Report_approved_04();
-            //Report_Reminder_05();
-            //Report_Reminder_06();
-            //Report_Failedtosubmit_07();
-            //Report_pending_08();
-            //Report_Reminder_09();
-            //Report_autoapprove_10();
-            //Report_approved_11();
-             Report_approved_12();
+            Report_submitted_01();
+            Report_submitted_02();
+            Report_reviewed_02();
+            ReportPending_03();
+            Report_approved_04();
+            Report_Reminder_05();
+            Report_Reminder_06();
+            Report_Failedtosubmit_07();
+            Report_pending_08();
+            Report_Reminder_09();
+            Report_autoapprove_10();
+            Report_approved_11();
+            Report_approved_12();
             string path = @"C:\Users\krpat\OneDrive\Documents\GitHub\Email\Task.txt";
             using (StreamWriter writer = new StreamWriter(path, true))
             {
@@ -40,8 +40,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1)
+                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -129,8 +130,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1)
+                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -204,7 +206,8 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
-                var reports = result.MIS_MISReport.Where(r => r.StatusId == 3)
+                var currentMonth = DateTime.Now.Month;
+                var reports = result.MIS_MISReport.Where(r => r.StatusId == 3 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -282,7 +285,8 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
-                var reports = result.MIS_MISReport.Where(r => r.StatusId == 2)
+                var currentMonth = DateTime.Now.Month;
+                var reports = result.MIS_MISReport.Where(r => r.StatusId == 2 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -365,8 +369,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 4)
+                    .Where(r => r.StatusId == 4 && r.EntryDate.Month == currentMonth )
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -649,8 +654,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1)
+                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -726,8 +732,9 @@ namespace Task
             {
                 using (var result = new ApplicationDbContext())
                 {
+                    var currentMonth = DateTime.Now.Month;
                     var reports = result.MIS_MISReport
-                        .Where(r => r.StatusId == 2)
+                        .Where(r => r.StatusId == 2 && r.EntryDate.Month == currentMonth)
                         .Join(
                             result.MIS_VerticalMaster,
                             report => report.VerticalId,
@@ -810,8 +817,9 @@ namespace Task
             {
                 using (var result = new ApplicationDbContext())
                 {
+                    var currentMonth = DateTime.Now.Month;
                     var reports = result.MIS_MISReport
-                        .Where(r => r.StatusId == 1)
+                        .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
                         .Join(
                             result.MIS_VerticalMaster,
                             report => report.VerticalId,
@@ -897,8 +905,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 4)
+                    .Where(r => r.StatusId == 4 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -976,8 +985,9 @@ namespace Task
         {
             using (var result = new ApplicationDbContext())
             {
+                var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 4)
+                    .Where(r => r.StatusId == 4 && r.EntryDate.Month == currentMonth)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
