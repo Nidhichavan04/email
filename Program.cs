@@ -18,17 +18,17 @@ namespace Task
         {
             Report_submitted_01();
             Report_submitted_02();
-            Report_reviewed_02();
-            ReportPending_03();
-            Report_approved_04();
-            Report_Reminder_05();
-            Report_Reminder_06();
-            Report_Failedtosubmit_07();
-            Report_pending_08();
-            Report_Reminder_09();
-            Report_autoapprove_10();
-            Report_approved_11();
-            Report_approved_12();
+            //Report_reviewed_02();
+            //ReportPending_03();
+            //Report_approved_04();
+            //Report_Reminder_05();
+            //Report_Reminder_06();
+            //Report_Failedtosubmit_07();
+            //Report_pending_08();
+            //Report_Reminder_09();
+            //Report_autoapprove_10();
+            //Report_approved_11();
+            //Report_approved_12();
             string path = @"C:\Users\krpat\OneDrive\Documents\GitHub\Email\Task.txt";
             using (StreamWriter writer = new StreamWriter(path, true))
             {
@@ -114,17 +114,11 @@ namespace Task
                             mail.To.Add(new MailAddress(recipient));
                         }
 
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
         }
-
 
         static void Report_submitted_02()
         {
@@ -189,18 +183,11 @@ namespace Task
                             mail.To.Add(new MailAddress(user.Email));
                         }
 
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
         }
-
-
 
         static void Report_reviewed_02()
         {
@@ -280,7 +267,6 @@ namespace Task
             }
         }
 
-
         static void ReportPending_03()
         {
             using (var result = new ApplicationDbContext())
@@ -351,19 +337,11 @@ namespace Task
                         {
                             mail.CC.Add(new MailAddress(user.Email));
                         }
-
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
         }
-
-
 
         static void Report_approved_04()
         {
@@ -437,13 +415,7 @@ namespace Task
                         {
                             mail.CC.Add(new MailAddress(user.Email));
                         }
-
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
@@ -500,18 +472,12 @@ namespace Task
                             mail.Body = mailBody.ToString();
                             mail.IsBodyHtml = true;
 
-                            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                            {
-                                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                                smtp.EnableSsl = true;
-                                smtp.Send(mail);
-                            }
+                            SendEmail(mail);
                         }
                     }
                 }
             }
         }
-
 
         static void Report_Reminder_06()
         {
@@ -569,12 +535,7 @@ namespace Task
                                 mail.CC.Add(new MailAddress(user.Email));
                             }
 
-                            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                            {
-                                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                                smtp.EnableSsl = true;
-                                smtp.Send(mail);
-                            }
+                            SendEmail(mail);
                         }
                     }
                 }
@@ -637,12 +598,7 @@ namespace Task
                             mail.Body += $"<br/>Date: {todayDate.ToString("yyyy-MM-dd")}";
                             mail.IsBodyHtml = true;
 
-                            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                            {
-                                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                                smtp.EnableSsl = true;
-                                smtp.Send(mail);
-                            }
+                            SendEmail(mail);
                         }
                     }
                 }
@@ -712,12 +668,7 @@ namespace Task
                         mail.Body = mailBody.ToString();
                         mail.IsBodyHtml = true;
 
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
@@ -796,12 +747,7 @@ namespace Task
                             mail.Body = mailBody.ToString();
                             mail.IsBodyHtml = true;
 
-                            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                            {
-                                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                                smtp.EnableSsl = true;
-                                smtp.Send(mail);
-                            }
+                            SendEmail(mail);
                         }
                     }
                 }
@@ -884,12 +830,7 @@ namespace Task
                             mail.Body = mailBody.ToString();
                             mail.IsBodyHtml = true;
 
-                            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                            {
-                                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                                smtp.EnableSsl = true;
-                                smtp.Send(mail);
-                            }
+                            SendEmail(mail);
 
                             // Save the changes to the database
                             result.SaveChanges();
@@ -898,8 +839,6 @@ namespace Task
                 }
             }
         }
-
-
 
         static void Report_approved_11()
         {
@@ -969,17 +908,11 @@ namespace Task
                         mail.Body = mailBody.ToString();
                         mail.IsBodyHtml = true;
 
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
         }
-
 
         static void Report_approved_12()
         {
@@ -1043,18 +976,20 @@ namespace Task
                         mail.Body = mailBody.ToString();
                         mail.IsBodyHtml = true;
 
-                        using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-                        {
-                            smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
-                            smtp.EnableSsl = true;
-                            smtp.Send(mail);
-                        }
+                        SendEmail(mail);
                     }
                 }
             }
         }
 
-
+        static void SendEmail(MailMessage mail)
+        {
+            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+            {
+                smtp.Credentials = new NetworkCredential("noreplyehstesting78@gmail.com", "cntpraqgsaqjlxpi");
+                smtp.EnableSsl = true;
+                smtp.Send(mail);
+            }
+        }
     }
-
 }
