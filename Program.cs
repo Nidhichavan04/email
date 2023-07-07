@@ -139,55 +139,47 @@ namespace Task
                         project => project.ProjectId,
                         (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
                     )
+                    .Join(
+                        result.MIS_Users,
+                        reportProject => reportProject.Project.ProjectManagerId,
+                        user => user.UserId,
+                        (reportProject, user) => new { ReportProject = reportProject, User = user }
+                    )
                     .ToList();
 
-                if (reports.Count > 0)
+                // Group reports by User.Email
+                var groupedReports = reports.GroupBy(r => r.User.Email);
+
+                foreach (var group in groupedReports)
                 {
-                    var users = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
-                 
+                    Console.WriteLine($"Email: {group.Key}");
 
-                    using (MailMessage mail = new MailMessage())
+                    foreach (var report in group)
                     {
-                        mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-                        mail.Subject = "Reports submitted for review";
-
-                        // Constructing the mail body
-                        var mailBody = new StringBuilder();
-                        mailBody.AppendLine("<h5>Dear Sir/Madam,</h5>");
-                        mailBody.AppendLine("<br/>");
-                        mailBody.AppendLine("<p>Greetings!</p>");
-                        mailBody.AppendLine("<br/>");
-                        mailBody.AppendLine("<p>The following reports have been submitted for review:</p>");
-                        mailBody.AppendLine("<ul>");
-
-                        foreach (var reportData in reports)
+                        using (MailMessage mail = new MailMessage())
                         {
-                            var report = reportData.ReportVertical.Report;
-                            var vertical = reportData.ReportVertical.Vertical;
-                            var project = reportData.Project;
-                            var submissiondate = report.EntryDate.ToString("yyyy-MM-dd");
-                            mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}' ,'{report.EntryDate}'</li>");
+                            mail.From = new MailAddress("noreplyehstesting78@gmail.com");
+                            // Access individual reports within the group
+                            var individualReport = report.ReportProject.Project;
+                            mail.To.Add(new MailAddress(report.User.Email));
+
+                            // Build the email body
+                            var verticalName = report.ReportProject.ReportVertical.Vertical.VerticalName;
+                            var projectName = report.ReportProject.Project.ProjectName;
+                            var entryDate = report.ReportProject.ReportVertical.Report.EntryDate;
+                            var mailBody = new StringBuilder();
+                            mailBody.AppendLine($"- Report for the project '{individualReport}' in the vertical '{verticalName}' in the project '{projectName}' submitted on {entryDate}");
+
+                            mail.Subject = "Your Report";
+                            mail.Body = "Dear user, here is your report:\n" + individualReport.ToString() + mailBody.ToString();
+
+                            SendEmail(mail);
                         }
-
-                        mailBody.AppendLine("</ul>");
-                        mailBody.AppendLine("<br/>");
-                        mailBody.AppendLine("<p>Thank you for your attention.</p>");
-                        mailBody.AppendLine("<br/>");
-                        var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-                        mailBody.AppendLine($"<p> Date: {currentDate}</p>");
-                        mail.Body = mailBody.ToString();
-                        mail.IsBodyHtml = true;
-
-                        foreach (var user in users)
-                        {
-                            mail.To.Add(new MailAddress(user.Email));
-                        }
-
-                        SendEmail(mail);
                     }
                 }
             }
         }
+
 
         static void Report_reviewed_02()
         {
