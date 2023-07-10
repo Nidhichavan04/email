@@ -17,19 +17,20 @@ namespace Task
     {
         static void Main(string[] args)
         {
-            //Report_submitted_01();
-            //Report_submitted_02();
+            Report_submitted_01();
+            Report_submitted_02();
             //Report_reviewed_02();
             //ReportPending_03();
             //Report_approved_04();
             //Report_Reminder_05();
             //Report_Reminder_06();
             //Report_Failedtosubmit_07();
-            Report_pending_08();
+            //Report_pending_08();
             //Report_Reminder_09();
             //Report_autoapprove_10();
             //Report_approved_11();
             //Report_approved_12();
+
             string path = @"C:\Users\krpat\OneDrive\Documents\GitHub\Email\Task.txt";
             using (StreamWriter writer = new StreamWriter(path, true))
             {
@@ -42,9 +43,11 @@ namespace Task
             using (var result = new ApplicationDbContext())
             {
                 var currentMonth = DateTime.Now.Month;
+                var twoMinutesAgo = DateTime.Now.AddMinutes(-2);
+
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
-                    .Join(
+                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth && r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now)
+                            .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
                         vertical => vertical.VerticalId,
@@ -126,8 +129,10 @@ namespace Task
             using (var result = new ApplicationDbContext())
             {
                 var currentMonth = DateTime.Now.Month;
+                var twoMinutesAgo = DateTime.Now.AddMinutes(-2);
+
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
+                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth && r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now)
                     .Join(
                         result.MIS_VerticalMaster,
                         report => report.VerticalId,
@@ -664,7 +669,7 @@ namespace Task
                             var projectName = report.ReportProject.Project.ProjectName;
                             var entryDate = report.ReportProject.ReportVertical.Report.EntryDate;
 
-                            mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} but waiting for review.");
+                            mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} but waiting for review.<br><br>");
                         }
 
                         mailBody.AppendLine();
@@ -691,32 +696,37 @@ namespace Task
                 {
                     var currentMonth = DateTime.Now.Month;
                     var reports = result.MIS_MISReport
-                        .Where(r => r.StatusId == 2 && r.EntryDate.Month == currentMonth)
-                        .Join(
-                            result.MIS_VerticalMaster,
-                            report => report.VerticalId,
-                            vertical => vertical.VerticalId,
-                            (report, vertical) => new { Report = report, Vertical = vertical }
-                        )
-                        .Join(
-                            result.MIS_ProjectMaster,
-                            reportVertical => reportVertical.Report.ProjectId,
-                            project => project.ProjectId,
-                            (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
-                        )
-                        .ToList();
+                   .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
+                   .Join(
+                       result.MIS_VerticalMaster,
+                       report => report.VerticalId,
+                       vertical => vertical.VerticalId,
+                       (report, vertical) => new { Report = report, Vertical = vertical }
+                   )
+                   .Join(
+                       result.MIS_ProjectMaster,
+                       reportVertical => reportVertical.Report.ProjectId,
+                       project => project.ProjectId,
+                       (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
+                   )
+                   .Join(
+                       result.MIS_Users,
+                       reportProject => reportProject.Project.ProjectManagerId,
+                       user => user.UserId,
+                       (reportProject, user) => new { ReportProject = reportProject, User = user }
+                   )
+                   .ToList();
 
-                    if (reports.Count > 0)
+                    // Group reports by User.Email
+                    var groupedReports = reports.GroupBy(r => r.User.Email);
+                    foreach (var group in groupedReports)
                     {
+                        Console.WriteLine($"Email: {group.Key}");
+
                         using (MailMessage mail = new MailMessage())
                         {
                             mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-
-                            var usersRoleId2 = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
-                            foreach (var user in usersRoleId2)
-                            {
-                                mail.To.Add(new MailAddress(user.Email));
-                            }
+                            mail.To.Add(new MailAddress(group.Key));
 
                             var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
                             foreach (var user in usersRoleId3)
@@ -726,22 +736,24 @@ namespace Task
 
                             mail.Subject = "Reminder to approve reported MIS";
 
-                            // Constructing the mail body
+                            // Build the email body
                             var mailBody = new StringBuilder();
-                            mailBody.AppendLine($"<h5>Dear Sir/Madam,</h5>");
+                            mailBody.AppendLine($"Dear Sir/Madam,");
                             mailBody.AppendLine("<br/>");
-                            mailBody.AppendLine("<p>Greetings!</p>");
+                            mailBody.AppendLine($"Greetings!");
                             mailBody.AppendLine("<br/>");
-                            mailBody.AppendLine("<p>Reminder to approve the following reports and send them to the HOD Team for approval:</p>");
-                            mailBody.AppendLine("<ul>");
+                            mailBody.AppendLine($"Reminder to approve the following reports.");
+                            mailBody.AppendLine("<br/>");
 
-                            foreach (var reportData in reports)
+                            foreach (var report in group)
                             {
-                                var report = reportData.ReportVertical.Report;
-                                var vertical = reportData.ReportVertical.Vertical;
-                                var project = reportData.Project;
+                                var individualReport = report.ReportProject.Project;
+                                var verticalName = report.ReportProject.ReportVertical.Vertical.VerticalName;
+                                var projectName = report.ReportProject.Project.ProjectName;
+                                var entryDate = report.ReportProject.ReportVertical.Report.EntryDate;
 
-                                mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}'</li>");
+                                mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} but waiting for review.<br><br>");
+
                             }
 
                             mailBody.AppendLine("</ul>");
@@ -765,38 +777,43 @@ namespace Task
             DateTime currentDate = DateTime.Now.Date;
             int currentDay = currentDate.Day;
 
-            if (currentDay == 7)
+            if (currentDay == 10)
             {
                 using (var result = new ApplicationDbContext())
                 {
                     var currentMonth = DateTime.Now.Month;
                     var reports = result.MIS_MISReport
-                        .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
-                        .Join(
-                            result.MIS_VerticalMaster,
-                            report => report.VerticalId,
-                            vertical => vertical.VerticalId,
-                            (report, vertical) => new { Report = report, Vertical = vertical }
-                        )
-                        .Join(
-                            result.MIS_ProjectMaster,
-                            reportVertical => reportVertical.Report.ProjectId,
-                            project => project.ProjectId,
-                            (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
-                        )
-                        .ToList();
+                  .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth)
+                  .Join(
+                      result.MIS_VerticalMaster,
+                      report => report.VerticalId,
+                      vertical => vertical.VerticalId,
+                      (report, vertical) => new { Report = report, Vertical = vertical }
+                  )
+                  .Join(
+                      result.MIS_ProjectMaster,
+                      reportVertical => reportVertical.Report.ProjectId,
+                      project => project.ProjectId,
+                      (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
+                  )
+                  .Join(
+                      result.MIS_Users,
+                      reportProject => reportProject.Project.ProjectManagerId,
+                      user => user.UserId,
+                      (reportProject, user) => new { ReportProject = reportProject, User = user }
+                  )
+                  .ToList();
 
-                    if (reports.Count > 0)
+                    // Group reports by User.Email
+                    var groupedReports = reports.GroupBy(r => r.User.Email);
+                    foreach (var group in groupedReports)
                     {
+                        Console.WriteLine($"Email: {group.Key}");
+
                         using (MailMessage mail = new MailMessage())
                         {
                             mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-
-                            var usersRoleId2 = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
-                            foreach (var user in usersRoleId2)
-                            {
-                                mail.To.Add(new MailAddress(user.Email));
-                            }
+                            mail.To.Add(new MailAddress(group.Key));
 
                             var usersRoleId3 = result.MIS_Users.Where(u => u.RoleId == 3).ToList();
                             foreach (var user in usersRoleId3)
@@ -815,16 +832,16 @@ namespace Task
                             mailBody.AppendLine("<p>We would like to inform you that the following reports have been auto-approved:</p>");
                             mailBody.AppendLine("<ul>");
 
-                            foreach (var reportData in reports)
+                            foreach (var report in group)
                             {
-                                var report = reportData.ReportVertical.Report;
-                                var vertical = reportData.ReportVertical.Vertical;
-                                var project = reportData.Project;
+                                var individualReport = report.ReportProject.Project;
+                                var verticalName = report.ReportProject.ReportVertical.Vertical.VerticalName;
+                                var projectName = report.ReportProject.Project.ProjectName;
+                                var entryDate = report.ReportProject.ReportVertical.Report.EntryDate;
 
-                                mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}'</li>");
-
+                                mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' <br><br>");
                                 // Update the StatusId to 3 for the project in the MIS_Report table
-                                report.StatusId = 3;
+                                report.ReportProject.ReportVertical.Report.StatusId = 3;
                             }
 
                             mailBody.AppendLine("</ul>");
@@ -852,29 +869,40 @@ namespace Task
             {
                 var currentMonth = DateTime.Now.Month;
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 4 && r.EntryDate.Month == currentMonth)
-                    .Join(
-                        result.MIS_VerticalMaster,
-                        report => report.VerticalId,
-                        vertical => vertical.VerticalId,
-                        (report, vertical) => new { Report = report, Vertical = vertical }
-                    )
-                    .Join(
-                        result.MIS_ProjectMaster,
-                        reportVertical => reportVertical.Report.ProjectId,
-                        project => project.ProjectId,
-                        (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
-                    )
-                    .ToList();
+                 .Where(r => r.StatusId == 4 && r.EntryDate.Month == currentMonth)
+                 .Join(
+                     result.MIS_VerticalMaster,
+                     report => report.VerticalId,
+                     vertical => vertical.VerticalId,
+                     (report, vertical) => new { Report = report, Vertical = vertical }
+                 )
+                 .Join(
+                     result.MIS_ProjectMaster,
+                     reportVertical => reportVertical.Report.ProjectId,
+                     project => project.ProjectId,
+                     (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
+                 )
+                 .Join(
+                     result.MIS_Users,
+                     reportProject => reportProject.Project.ProjectManagerId,
+                     user => user.UserId,
+                     (reportProject, user) => new { ReportProject = reportProject, User = user }
+                 )
+                 .ToList();
 
-                if (reports.Count > 0)
+                // Group reports by User.Email
+                var groupedReports = reports.GroupBy(r => r.User.Email);
+                foreach (var group in groupedReports)
                 {
+                    Console.WriteLine($"Email: {group.Key}");
+
                     using (MailMessage mail = new MailMessage())
                     {
                         mail.From = new MailAddress("noreplyehstesting78@gmail.com");
+                        mail.To.Add(new MailAddress(group.Key));
 
-                        var usersRoleId1or2 = result.MIS_Users.Where(u => u.RoleId == 1 || u.RoleId ==2 ).ToList();
-                        foreach (var user in usersRoleId1or2)
+                        var usersRoleId2 = result.MIS_Users.Where(u => u.RoleId == 2).ToList();
+                        foreach (var user in usersRoleId2)
                         {
                             mail.To.Add(new MailAddress(user.Email));
                         }
@@ -896,13 +924,14 @@ namespace Task
                         mailBody.AppendLine("<p>The following reports are approved:</p>");
                         mailBody.AppendLine("<ul>");
 
-                        foreach (var reportData in reports)
+                        foreach (var report in group)
                         {
-                            var report = reportData.ReportVertical.Report;
-                            var vertical = reportData.ReportVertical.Vertical;
-                            var project = reportData.Project;
+                            var individualReport = report.ReportProject.Project;
+                            var verticalName = report.ReportProject.ReportVertical.Vertical.VerticalName;
+                            var projectName = report.ReportProject.Project.ProjectName;
+                            var entryDate = report.ReportProject.ReportVertical.Report.EntryDate;
 
-                            mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}'</li>");
+                            mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' <br><br>");
                         }
 
                         mailBody.AppendLine("</ul>");
