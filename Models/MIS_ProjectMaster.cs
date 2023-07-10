@@ -13,6 +13,7 @@ namespace Email.Models
         public int ProjectId { get; set; }
         public string ProjectName { get; set; }
         public int VerticalId { get; set; }
+        public int ProjectManagerId { get; set; }
         public bool IsActive { get; set; }
     }
 }
