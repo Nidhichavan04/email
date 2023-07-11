@@ -12,6 +12,8 @@ namespace Email.Models
     {
         [Key]
         public int VerticalId { get; set; }
+
+        public int SiteinchargeId { get; set; }
         public string VerticalName { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace Task
     {
         static void Main(string[] args)
         {
-            Report_submitted_01();
+            //Report_submitted_01();
             //Report_submitted_02();
             //Report_reviewed_02();
             //ReportPending_03();
@@ -47,7 +47,7 @@ namespace Task
                 var twoMinutesAgo = DateTime.Now.AddMinutes(-2);
 
                 var reports = result.MIS_MISReport
-                     .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth /*&& r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now*/)
+                     .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth && r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now)
                      .Join(
                          result.MIS_VerticalMaster,
                          report => report.VerticalId,
@@ -79,6 +79,7 @@ namespace Task
                             {
                                 mail.From = new MailAddress("noreplyehstesting78@gmail.com");
                                 mail.To.Add(new MailAddress(group.Key));
+                                mail.Subject = "Report Submitted";
 
                                 // Build the email body
                                 var mailBody = new StringBuilder();
@@ -87,13 +88,12 @@ namespace Task
                                 mailBody.AppendLine($"Greetings!");
                                 mailBody.AppendLine("<br/>");
 
-                        foreach (var report in group)
+                                foreach (var report in group)
                                 {
-                                    var verticalName = report.Vertical.ReportVertical.Vertical.VerticalName;
+                                     var verticalName = report.Vertical.ReportVertical.Vertical.VerticalName;
                                      var projectName = report.Vertical.Project.ProjectName;
                                      var entryDate = report.Vertical.ReportVertical.Report.EntryDate;
-
-                            mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} <br><br>");
+                                      mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} <br><br>");
                         }
 
                         mailBody.AppendLine("</ul>");
