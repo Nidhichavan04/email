@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace Task
 {
@@ -18,7 +19,7 @@ namespace Task
         static void Main(string[] args)
         {
             Report_submitted_01();
-            Report_submitted_02();
+            //Report_submitted_02();
             //Report_reviewed_02();
             //ReportPending_03();
             //Report_approved_04();
@@ -46,59 +47,53 @@ namespace Task
                 var twoMinutesAgo = DateTime.Now.AddMinutes(-2);
 
                 var reports = result.MIS_MISReport
-                    .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth && r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now)
-                            .Join(
-                        result.MIS_VerticalMaster,
-                        report => report.VerticalId,
-                        vertical => vertical.VerticalId,
-                        (report, vertical) => new { Report = report, Vertical = vertical }
-                    )
-                    .Join(
-                        result.MIS_ProjectMaster,
-                        reportVertical => reportVertical.Report.ProjectId,
-                        project => project.ProjectId,
-                        (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
-                    )
-                    .ToList();
+                     .Where(r => r.StatusId == 1 && r.EntryDate.Month == currentMonth /*&& r.EntryDate >= twoMinutesAgo && r.EntryDate <= DateTime.Now*/)
+                     .Join(
+                         result.MIS_VerticalMaster,
+                         report => report.VerticalId,
+                         vertical => vertical.VerticalId,
+                         (report, vertical) => new { Report = report, Vertical = vertical }
+                     )
+                     .Join(
+                         result.MIS_ProjectMaster,
+                         reportVertical => reportVertical.Report.ProjectId,
+                         project => project.ProjectId,
+                         (reportVertical, project) => new { ReportVertical = reportVertical, Project = project }
+                     )
+                     .Join(
+                         result.MIS_Users,
+                         Vertical => Vertical.ReportVertical.Vertical.SiteinchargeId,
+                         user => user.UserId,
+                         (vertical, user) => new { Vertical = vertical, User = user }
+                     )
+                     .ToList();
 
-                var users = result.MIS_Users.ToList();
+                      // Group reports by User.Email
+                        var groupedReports = reports.GroupBy(r => r.User.Email);
 
-                if (reports.Count > 0)
-                {
-                    using (MailMessage mail = new MailMessage())
-                    {
-                        mail.From = new MailAddress("noreplyehstesting78@gmail.com");
-
-                        var emailRecipients = new List<string>();
-                        var mailBody = new StringBuilder();
-
-                        mail.Subject = "Submitted Reports";
-
-                        // Constructing the mail body
-                        mailBody.AppendLine("<h5>Dear Sir/Madam,</h5>");
-                        mailBody.AppendLine("<br/>");
-                        mailBody.AppendLine("<p>Greetings!</p>");
-                        mailBody.AppendLine("<br/>");
-                        mailBody.AppendLine("<p>The following reports have been submitted by you:</p>");
-                        mailBody.AppendLine("<ul>");
-
-                        foreach (var reportData in reports)
+                        foreach (var group in groupedReports)
                         {
-                            var report = reportData.ReportVertical.Report;
-                            var vertical = reportData.ReportVertical.Vertical;
-                            var project = reportData.Project;
+                            Console.WriteLine($"Email: {group.Key}");
 
-                            var user = users.FirstOrDefault(u => u.UserId == report.EntryBy);
-
-                            if (user != null && user.RoleId == 1)
+                            using (MailMessage mail = new MailMessage())
                             {
-                                emailRecipients.Add(user.Email);
+                                mail.From = new MailAddress("noreplyehstesting78@gmail.com");
+                                mail.To.Add(new MailAddress(group.Key));
 
-                                // Get the date portion of EntryDate
-                                var entryDate = report.EntryDate.Date.ToString("yyyy-MM-dd");
+                                // Build the email body
+                                var mailBody = new StringBuilder();
+                                mailBody.AppendLine($"Dear Sir/Madam,");
+                                mailBody.AppendLine("<br/>");
+                                mailBody.AppendLine($"Greetings!");
+                                mailBody.AppendLine("<br/>");
 
-                                mailBody.AppendLine($"<li>Report for the project '{project.ProjectName}' in the vertical '{vertical.VerticalName}' has been submitted on '{entryDate}'</li>");
-                            }
+                        foreach (var report in group)
+                                {
+                                    var verticalName = report.Vertical.ReportVertical.Vertical.VerticalName;
+                                     var projectName = report.Vertical.Project.ProjectName;
+                                     var entryDate = report.Vertical.ReportVertical.Report.EntryDate;
+
+                            mailBody.AppendLine($"- Report for the  project '{projectName}' in the vertical '{verticalName}' has been submitted on {entryDate} <br><br>");
                         }
 
                         mailBody.AppendLine("</ul>");
@@ -112,11 +107,6 @@ namespace Task
 
                         mail.Body = mailBody.ToString();
                         mail.IsBodyHtml = true;
-
-                        foreach (string recipient in emailRecipients)
-                        {
-                            mail.To.Add(new MailAddress(recipient));
-                        }
 
                         SendEmail(mail);
                     }
